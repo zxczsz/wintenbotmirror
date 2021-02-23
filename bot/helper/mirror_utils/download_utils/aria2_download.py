@@ -22,17 +22,20 @@ class AriaDownloadHelper(DownloadHelper):
         download = api.get_download(gid)
         self.name = download.name
         sname = download.name
-        gdrive = GoogleDriveHelper(None)
-        smsg, button = gdrive.drive_list(sname)
         if STOP_DUPLICATE_MIRROR:
-            if smsg:
-                dl.getListener().onDownloadError(f'😡😡 File is already available in Drive. Search Before Downloading!\n\n')
-                print(dl.getListener())
-                sendMarkup(" Here are the Search Results:👇👇", dl.getListener().bot, dl.getListener().update, button)
-                aria2.remove([download])
-            return
+          if dl.getListener().isTar == True:
+            sname = sname + ".tar"
+          if dl.getListener().extract == True:
+            smsg = None
+          else:
+            gdrive = GoogleDriveHelper(None)
+            smsg, button = gdrive.drive_list(sname)
+          if smsg:
+              dl.getListener().onDownloadError(f'😡. File is already available in Google Drive. Search Before Downloading!\n\n')
+              sendMarkup(" 👇 Search Results 👇", dl.getListener().bot, dl.getListener().update, button)
+              aria2.remove([download])
+          return
         update_all_messages()
-
     def __onDownloadComplete(self, api: API, gid):
         LOGGER.info(f"onDownloadComplete: {gid}")
         dl = getDownloadByGid(gid)
@@ -59,7 +62,7 @@ class AriaDownloadHelper(DownloadHelper):
     def __onDownloadStopped(self, api, gid):
         LOGGER.info(f"onDownloadStop: {gid}")
         dl = getDownloadByGid(gid)
-        if dl: dl.getListener().onDownloadError('Download stopped because dead torrent!')
+        if dl: dl.getListener().onDownloadError('Download stopped by user!')
 
     @new_thread
     def __onDownloadError(self, api, gid):
@@ -79,11 +82,11 @@ class AriaDownloadHelper(DownloadHelper):
                                       on_download_complete=self.__onDownloadComplete)
 
 
-    def add_download(self, link: str, path,listener):
+    def add_download(self, link: str, path, listener, filename):
         if is_magnet(link):
-            download = aria2.add_magnet(link, {'dir': path})
+            download = aria2.add_magnet(link, {'dir': path, 'out': filename})
         else:
-            download = aria2.add_uris([link], {'dir': path})
+            download = aria2.add_uris([link], {'dir': path, 'out': filename})
         if download.error_message: #no need to proceed further at this point
             listener.onDownloadError(download.error_message)
             return 
