@@ -1,20 +1,20 @@
 import shutil, psutil
 import signal
 import pickle
-
-from os import execl, path, remove
+from pyrogram import idle
+from bot import app
+from os import execl, kill, path, remove
 from sys import executable
 import time
-
+from telegram import ParseMode
 from telegram.ext import CommandHandler, run_async
 from bot import dispatcher, updater, botStartTime
 from bot.helper.ext_utils import fs_utils
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.message_utils import *
-from bot.helper.ext_utils.bot_utils import get_readable_file_size, get_readable_time
-from bot.helper.telegram_helper.filters import CustomFilters
-from bot.modules import authorize, list, cancel_mirror, mirror_status, mirror, clone, watch, delete, speedtest
-
+from .helper.ext_utils.bot_utils import get_readable_file_size, get_readable_time
+from .helper.telegram_helper.filters import CustomFilters
+from .modules import authorize, list, cancel_mirror, mirror_status, mirror, clone, watch, shell, eval, search, delete, speedtest
 
 @run_async
 def stats(update, context):
@@ -77,25 +77,28 @@ def bot_help(update, context):
     help_string = f'''
 /{BotCommands.HelpCommand}: To get this message
 
-/{BotCommands.MirrorCommand} : Start mirroring the link to Google Drive
+/{BotCommands.MirrorCommand} : Start Mirroring the Link to Google Drive
 
-/{BotCommands.UnzipMirrorCommand} : Start mirroring and if downloaded file is any archive, extracts it to Google Drive
+/{BotCommands.UnzipMirrorCommand} : Start Mirroring with Extracted Folder in Google Drive
 
-/{BotCommands.TarMirrorCommand} : Start mirroring and upload the archived (.tar) extension of the download
+/{BotCommands.TarMirrorCommand} : Start Mirroring and Upload with Archived (.tar) Extension
 
-/{BotCommands.WatchCommand} : Mirror through youtube-dl. Click /{BotCommands.WatchCommand} for more help.
+/{BotCommands.WatchCommand} : Mirror through YouTube-DL. Click /{BotCommands.WatchCommand} For More Help
 
-/{BotCommands.TarWatchCommand} : Mirror through youtube-dl and (.tar) extension before uploading
+/{BotCommands.TarWatchCommand} : Mirror through YouTube-DL with (.tar) Extension
 
 /{BotCommands.CancelMirror} : Cancel Mirror
 
-/{BotCommands.CloneCommand} : Clone / Copy files from Google Drive
+/{BotCommands.CloneCommand} : Clone / Copy Files From Google Drive
 
-/{BotCommands.StatusCommand}: Shows a status of all the downloads
+/{BotCommands.StatusCommand} : Shows a Status of all the Downloads
 
-/{BotCommands.ListCommand} : Search file/folder in the Google drive, if found replies with the link
+/{BotCommands.ListCommand} : Search File/Folder in the Google drive, if Found Replies with the Link
 
 /{BotCommands.SpeedCommand} : Check Internet Speedtest
+
+/torrent3 : Get Help For Torrent Search Module.
+
 '''
     sendMessage(help_string, context.bot, update)
 
@@ -131,4 +134,6 @@ def main():
     signal.signal(signal.SIGINT, fs_utils.exit_clean_up)
 
 
+app.start()
 main()
+idle()

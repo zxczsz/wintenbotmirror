@@ -22,9 +22,9 @@ def _watch(bot: Bot, update, isTar=False):
         msg += "\n\n• <b>If you want to use Custom Filename</b>, enter it after |"
         msg += f"\n\nExample :-\n<code>/{BotCommands.WatchCommand} https://youtu.be/QMOadtGpwlw 720 |Ikson - New Day </code>\n\n"
         msg += "This file will be downloaded in 720p quality and it's name will be <b>Ikson - Alive</b>\n\n"
-        msg += "• <b>if you want to convert to .mp3 / music</b>"
-        msg += f"\n\nExample :-\n<code>/{BotCommands.WatchCommand} https://youtu.be/QMOadtGpwlw audio |Ikson - New Day </code>\n\n"
-        msg += "This file will be downloaded in .mp3/audio and it's name will be <b>Ikson - Alive.mp3</b>\n\n"
+        msg += "• <b>if you want to convert to .mp3 / typing audio after link</b>"
+        msg += f"\n\nExample :-\n<code>/{BotCommands.WatchCommand} https://youtu.be/QMOadtGpwlw audio</code>\n\n"
+        msg += "This file will be downloaded in .mp3/audio <b>Ikson - Alive.mp3</b>\n\n"
         sendMessage(msg, bot, update)
         return
     try:

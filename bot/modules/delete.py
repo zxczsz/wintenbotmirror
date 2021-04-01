@@ -15,7 +15,7 @@ def deletefile(update, context):
 		link = msg_args[1]
 		LOGGER.info(msg_args[1])
 	except IndexError:
-		msg = 'send a link along with command'
+		msg = 'Send a link along with command'
 
 	if msg == '' : 
 		drive = gdriveTools.GoogleDriveHelper()
@@ -26,5 +26,5 @@ def deletefile(update, context):
 	threading.Thread(target=auto_delete_message, args=(context.bot, update.message, reply_message)).start()
 
 delete_handler = CommandHandler(command=BotCommands.deleteCommand, callback=deletefile,
-									filters=CustomFilters.owner_filter)
+									filters=CustomFilters.authorized_chat | CustomFilters.authorized_user)
 dispatcher.add_handler(delete_handler)

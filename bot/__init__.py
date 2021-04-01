@@ -108,6 +108,17 @@ telegraph_token = telegraph.get_access_token()
 LOGGER.info("Telegraph Token Generated: '" + telegraph_token + "'")
 
 try:
+    UPTOBOX_TOKEN = getConfig('UPTOBOX_TOKEN')
+except KeyError:
+    logging.warning('UPTOBOX_TOKEN not provided!')
+    UPTOBOX_TOKEN = None
+try:
+    UPTOBOX_TOKEN = getConfig('UPTOBOX_TOKEN')
+except KeyError:
+    logging.warning('UPTOBOX_TOKEN not provided!')
+    UPTOBOX_TOKEN = None
+    
+try:
     MEGA_API_KEY = getConfig('MEGA_API_KEY')
 except KeyError:
     logging.warning('MEGA API KEY not provided!')
@@ -204,6 +215,7 @@ except KeyError:
     SHORTENER = None
     SHORTENER_API = None
 
+app = Client('mirror-bot', api_id=TELEGRAM_API, api_hash=TELEGRAM_HASH, bot_token=BOT_TOKEN)
 updater = tg.Updater(token=BOT_TOKEN,use_context=True)
 bot = updater.bot
 dispatcher = updater.dispatcher

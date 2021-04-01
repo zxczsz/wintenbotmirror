@@ -4,17 +4,16 @@
   "logo": "https://telegra.ph/file/3927687333b6d5b407725.jpg",
   "keywords": [
     "telegram",
-    "bot4mirror",
-    "qxyzdrive"
+    "qxyzdrive",
     "mirror",
     "python",
     "aria",
     "mirror",
     "googledrive"
   ],
-  "repository": "https://github.com/zoeyzsz/bot4mirror",
-  "success_url": "https://github.com/zoeyzsz/bot4mirror",
-  "website": "https://github.com/zoeyzsz/bot4mirror",
+  "repository": "https://github.com/zoeyzsz/qxyzdrive",
+  "success_url": "https://github.com/zoeyzsz/qxyzdrive",
+  "website": "https://github.com/zoeyzsz/qxyzdrive",
   "env": {
     "ENV": {
       "description": "Setting to ANYTHING will enable webhooks when in ENV mode. Don't Change !",
@@ -48,7 +47,7 @@
     },
     "AUTO_DELETE_MESSAGE_DURATION": {
       "description": "Interval of time (in seconds), after which the bot deletes it's message (and command message) which is expected to be viewed instantly. Note: Set to -1 to never automatically delete messages.",
-      "value": "-1",
+      "value": "5",
       "required": false
     },
     "IS_TEAM_DRIVE": {
@@ -64,6 +63,10 @@
       "description": "(Optional Field) Refer to https://github.com/maple3142/GDIndex if you don't have you can skip this step.",
       "required": false
     },
+      "UPTOBOX_TOKEN": {
+        "description": "Uptobox token to mirror uptobox links. Get it from [Uptobox Premium Account](https://uptobox.com/my_account).",
+        "required": false
+      },
     "TELEGRAM_API": {
       "description": "This is to Authenticate to your Telegram account for downloading Telegram Files. You can get this from https://my.telegram.org",
       "required": true
@@ -83,6 +86,11 @@
     "MEGA_PASSWORD": {
       "description": "Your https://mega.nz Password Account",
       "required": true
+    },
+    "BLOCK_MEGA_FOLDER": {
+      "description": "Set true/false if you don't like user mirror from mega.nz (type folder)",
+      "value": "False",
+      "required": false
     },
     "BLOCK_MEGA_LINKS": {
       "description": "Set true/false if you don't like user mirror from mega.nz (type file)",
