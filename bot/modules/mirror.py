@@ -1,5 +1,5 @@
 import requests
-from telegram.ext import CommandHandler, run_async
+from telegram.ext import CommandHandler
 from telegram import InlineKeyboardMarkup
 
 from bot import Interval, INDEX_URL, BUTTON_THREE_NAME, BUTTON_THREE_URL, BUTTON_FOUR_NAME, BUTTON_FOUR_URL, BUTTON_FIVE_NAME, BUTTON_FIVE_URL, BLOCK_MEGA_LINKS, BLOCK_MEGA_FOLDER
@@ -20,6 +20,7 @@ from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import *
 from bot.helper.telegram_helper import button_build
+import urllib
 import pathlib
 import os
 import subprocess
@@ -59,7 +60,9 @@ class MirrorListener(listeners.MirrorListeners):
             download = download_dict[self.uid]
             name = download.name()
             size = download.size_raw()
-            m_path = f'{DOWNLOAD_DIR}{self.uid}/{download.name()}'
+            if name is None: # when pyrogram's media.file_name is of NoneType
+                name = os.listdir(f'{DOWNLOAD_DIR}{self.uid}')[0]
+            m_path = f'{DOWNLOAD_DIR}{self.uid}/{name}'
         if self.isTar:
             download.is_archiving = True
             try:
@@ -120,7 +123,7 @@ class MirrorListener(listeners.MirrorListeners):
             try:
                 download = download_dict[self.uid]
                 del download_dict[self.uid]
-                LOGGER.info(f"Deleting folder: {download.path()}")
+                LOGGER.info(f"Deleting Folder: {download.path()}")
                 fs_utils.clean_download(download.path())
                 LOGGER.info(str(download_dict))
             except Exception as e:
@@ -131,7 +134,7 @@ class MirrorListener(listeners.MirrorListeners):
             uname = f"@{self.message.from_user.username}"
         else:
             uname = f'<a href="tg://user?id={self.message.from_user.id}">{self.message.from_user.first_name}</a>'
-        msg = f"Hi {uname}\n\n 😡 Your download has been stopped {error}"
+        msg = f"Hi {uname}\n\n😡 Your download has been stopped because {error}"
         sendMessage(msg, self.bot, self.update)
         if count == 0:
             self.clean()
@@ -146,23 +149,24 @@ class MirrorListener(listeners.MirrorListeners):
 
     def onUploadComplete(self, link: str, size):
         with download_dict_lock:
-            msg = f'<b>📂 File Name :</b> <code>{download_dict[self.uid].name()}</code>\n<b>📥 Size : {size}</b>'
+            msg = f'<b>📂 File Name :</b> <code>{download_dict[self.uid].name()}</code>\n<b>📥 Total Size : {size}</b>\n<b>✅ Status :- Successfully Uploaded</b>'
             buttons = button_build.ButtonMaker()
             if SHORTENER is not None and SHORTENER_API is not None:
-                surl = requests.get('https://{}/api?api={}&url={}&format=text'.format(SHORTENER, SHORTENER_API, link)).text
-                buttons.buildbutton("⚡Google Drive⚡", surl)
+                surl = requests.get(f'https://{SHORTENER}/api?api={SHORTENER_API}&url={link}&format=text').text
+                buttons.buildbutton("⚡ Google Drive ⚡", surl)
             else:
-                buttons.buildbutton("⚡Google Drive⚡", link)
+                buttons.buildbutton("⚡ Google Drive ⚡", link)
             LOGGER.info(f'Done Uploading {download_dict[self.uid].name()}')
             if INDEX_URL is not None:
-                share_url = requests.utils.requote_uri(f'{INDEX_URL}/{download_dict[self.uid].name()}')
+                url_path = requests.utils.quote(f'{download_dict[self.uid].name()}')
+                share_url = f'{INDEX_URL}/{url_path}'
                 if os.path.isdir(f'{DOWNLOAD_DIR}/{self.uid}/{download_dict[self.uid].name()}'):
                     share_url += '/'
                 if SHORTENER is not None and SHORTENER_API is not None:
-                    siurl = requests.get('https://{}/api?api={}&url={}&format=text'.format(SHORTENER, SHORTENER_API, share_url)).text
-                    buttons.buildbutton("💥Index Link💥", siurl)
+                    siurl = requests.get(f'https://{SHORTENER}/api?api={SHORTENER_API}&url={share_url}&format=text').text
+                    buttons.buildbutton("💥 Drive Index 💥", siurl)
                 else:
-                    buttons.buildbutton("💥Index Link💥", share_url)
+                    buttons.buildbutton("💥 Drive Index 💥", share_url)
             if BUTTON_THREE_NAME is not None and BUTTON_THREE_URL is not None:
                 buttons.buildbutton(f"{BUTTON_THREE_NAME}", f"{BUTTON_THREE_URL}")
             if BUTTON_FOUR_NAME is not None and BUTTON_FOUR_URL is not None:
@@ -174,7 +178,7 @@ class MirrorListener(listeners.MirrorListeners):
             else:
                 uname = f'<a href="tg://user?id={self.message.from_user.id}">{self.message.from_user.first_name}</a>'
             if uname is not None:
-                msg += f'\n\n🙎🏻‍♂️ <b>File Uploaded By :- {uname}</b> ✨'
+                msg += f'\n\n🙎🏻‍♂️ <b>By :- {uname}</b> ✨'
             try:
                 fs_utils.clean_download(download_dict[self.uid].path())
             except FileNotFoundError:
@@ -187,12 +191,29 @@ class MirrorListener(listeners.MirrorListeners):
         else:
             update_all_messages()
 
+    def onUploadError(self, error):
+        e_str = error.replace('<', '').replace('>', '')
+        with download_dict_lock:
+            try:
+                fs_utils.clean_download(download_dict[self.uid].path())
+            except FileNotFoundError:
+                pass
+            del download_dict[self.message.message_id]
+            count = len(download_dict)
+        sendMessage(e_str, self.bot, self.update)
+        if count == 0:
+            self.clean()
+        else:
+            update_all_messages()
+
 
 def _mirror(bot, update, isTar=False, extract=False):
-    message_args = update.message.text.split(' ')
-    name_args = update.message.text.split('|')
+    mesg = update.message.text.split('\n')
+    message_args = mesg[0].split(' ')
+    name_args = mesg[0].split('|')
     try:
         link = message_args[1]
+        print(link)
         if link.startswith("|") or link.startswith("pswd: "):
             link = ''
     except IndexError:
@@ -204,6 +225,15 @@ def _mirror(bot, update, isTar=False, extract=False):
             name = ''
     except IndexError:
         name = ''
+    try:
+        ussr = urllib.parse.quote(mesg[1], safe='')
+        pssw = urllib.parse.quote(mesg[2], safe='')
+    except:
+        ussr = ''
+        pssw = ''
+    if ussr != '' and pssw != '':
+        link = link.split("://", maxsplit=1)
+        link = f'{link[0]}://{ussr}:{pssw}@{link[1]}'
     pswd = re.search('(?<=pswd: )(.*)', update.message.text)
     if pswd is not None:
       pswd = pswd.groups()
@@ -235,7 +265,7 @@ def _mirror(bot, update, isTar=False, extract=False):
     else:
         tag = None
     if not bot_utils.is_url(link) and not bot_utils.is_magnet(link):
-        sendMessage('No download source provided, please send me the link / torrent magnet / telegram file', bot, update)
+        sendMessage('No download source provided', bot, update)
         return
 
     try:
@@ -246,9 +276,9 @@ def _mirror(bot, update, isTar=False, extract=False):
     if bot_utils.is_mega_link(link):
         link_type = get_mega_link_type(link)
         if link_type == "folder" and BLOCK_MEGA_FOLDER:
-            sendMessage("<b>🚫 Mega Folder Blocked!</b> 🚫", bot, update)
+            sendMessage("<b>🚫 Mega Folder Blocked! 🚫</b> ", bot, update)
         elif BLOCK_MEGA_LINKS:
-            sendMessage("<b>🚫 Mega Links Blocked!</b> 🚫", bot, update)
+            sendMessage("<b>🚫 Mega Link Blocked! 🚫</b> ", bot, update)
         else:
             mega_dl = MegaDownloadHelper()
             mega_dl.add_download(link, f'{DOWNLOAD_DIR}/{listener.uid}/', listener)
@@ -260,27 +290,24 @@ def _mirror(bot, update, isTar=False, extract=False):
         Interval.append(setInterval(DOWNLOAD_STATUS_UPDATE_INTERVAL, update_all_messages))
 
 
-@run_async
 def mirror(update, context):
     _mirror(context.bot, update)
 
 
-@run_async
 def tar_mirror(update, context):
     _mirror(context.bot, update, True)
 
 
-@run_async
 def unzip_mirror(update, context):
     _mirror(context.bot, update, extract=True)
 
 
 mirror_handler = CommandHandler(BotCommands.MirrorCommand, mirror,
-                                filters=CustomFilters.authorized_chat | CustomFilters.authorized_user)
+                                filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
 tar_mirror_handler = CommandHandler(BotCommands.TarMirrorCommand, tar_mirror,
-                                    filters=CustomFilters.authorized_chat | CustomFilters.authorized_user)
+                                    filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
 unzip_mirror_handler = CommandHandler(BotCommands.UnzipMirrorCommand, unzip_mirror,
-                                      filters=CustomFilters.authorized_chat | CustomFilters.authorized_user)
+                                      filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
 dispatcher.add_handler(mirror_handler)
 dispatcher.add_handler(tar_mirror_handler)
 dispatcher.add_handler(unzip_mirror_handler)

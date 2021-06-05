@@ -135,7 +135,6 @@ async def nyaa_callback(client, callback_query):
             ignore.add(message_identifier)
     await callback_query.answer()
 
-@run_async
 def searchhelp(update, context):
     help_string = '''
 ts = Torrent Search
@@ -143,7 +142,7 @@ Note :- This module to display links on the nyaa.si website
 Website :- https://nyaa.si
 
 Example :
-• /ts3 [Search Query]
+• /ts [Search Query]
 • <code>/ts3 One Piece</code>
 • <code>/ts3 Boruto</code>
 
@@ -151,10 +150,10 @@ hunter = Torrent Search
 Note :- This module to display subdomain by nyaa.si website
 Website :- https://sukebei.nyaa.si
 
-Example :                              
-• /hunter3 [Search Query]
-• <code>/hunter3 SSNI-303</code>
-• <code>/hunter3 HUNTA-965</code>
+• /hunter [Search Query]
+Example :
+<code>/hunter3 SSNI-101</code>
+<code>/hunter3 HUNTA-965</code>
 '''
     update.effective_message.reply_photo("https://telegra.ph/file/2326855aa5ba1d2520e47.jpg", help_string, parse_mode=ParseMode.HTML)
     

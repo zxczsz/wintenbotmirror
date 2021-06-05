@@ -94,7 +94,7 @@ def update_all_messages():
                     uldl_bytes += float(speedy.split('M')[0]) * 1048576
         dlspeed = get_readable_file_size(dlspeed_bytes)
         ulspeed = get_readable_file_size(uldl_bytes)
-        msg += f"<b>\n\n⚡️ Speed Meter ⚡️</b>\n" \
+        msg += f"<b>\n\n⚡️ Speed Meter ⚡️</b>\n\n" \
                     f"<b>D : {dlspeed}/s 🔻 </b> | <b>U : {ulspeed}/s 🔺</b>" 
     with status_reply_dict_lock:
         for chat_id in list(status_reply_dict.keys()):
@@ -131,7 +131,7 @@ def sendStatusMessage(msg, bot):
                     uldl_bytes += float(speedy.split('M')[0]) * 1048576
         dlspeed = get_readable_file_size(dlspeed_bytes)
         ulspeed = get_readable_file_size(uldl_bytes)
-        progress += f"<b>\n\n⚡️ Speed Meter ⚡️</b>\n" \
+        progress += f"<b>\n\n⚡️ Speed Meter ⚡️</b>\n\n" \
                     f"<b>D : {dlspeed}/s 🔻 </b> | <b>U : {ulspeed}/s 🔺</b>"
     with status_reply_dict_lock:
         if msg.message.chat.id in list(status_reply_dict.keys()):

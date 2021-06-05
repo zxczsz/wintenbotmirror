@@ -1,5 +1,4 @@
 from bot.helper.telegram_helper.message_utils import sendMessage
-from telegram.ext import run_async
 from bot import AUTHORIZED_CHATS, dispatcher
 from telegram.ext import CommandHandler
 from bot.helper.telegram_helper.filters import CustomFilters
@@ -8,7 +7,6 @@ from telegram import Update
 from bot.helper.telegram_helper.bot_commands import BotCommands
 
 
-@run_async
 def authorize(update,context):
     reply_message = update.message.reply_to_message
     msg = ''
@@ -19,22 +17,21 @@ def authorize(update,context):
             if chat_id not in AUTHORIZED_CHATS:
                 file.write(f'{chat_id}\n')
                 AUTHORIZED_CHATS.add(chat_id)
-                msg = 'Chat Authorized ✅'
+                msg = '✅ Chat Authorized ✅'
             else:
-                msg = 'Already Authorized Chat ✅'
+                msg = '✅ Already authorized chat ✅'
         else:
             # Trying to authorize someone in specific
             user_id = reply_message.from_user.id
             if user_id not in AUTHORIZED_CHATS:
                 file.write(f'{user_id}\n')
                 AUTHORIZED_CHATS.add(user_id)
-                msg = 'Person Authorized to use the Bot! ✅'
+                msg = '✅ Person Authorized to use the Bot! ✅'
             else:
-                msg = 'Person Already Authorized ✅'
+                msg = '✅ Person Already Authorized ✅'
         sendMessage(msg, context.bot, update)
 
 
-@run_async
 def unauthorize(update,context):
     reply_message = update.message.reply_to_message
     if reply_message is None:
@@ -42,17 +39,17 @@ def unauthorize(update,context):
         chat_id = update.effective_chat.id
         if chat_id in AUTHORIZED_CHATS:
             AUTHORIZED_CHATS.remove(chat_id)
-            msg = 'Chat Unauthorized 🚫'
+            msg = '🚫 Chat Unauthorized 🚫'
         else:
-            msg = 'Already Unauthorized Chat 🚫'
+            msg = '✅ Already Unauthorized Chat 🚫'
     else:
         # Trying to authorize someone in specific
         user_id = reply_message.from_user.id
         if user_id in AUTHORIZED_CHATS:
             AUTHORIZED_CHATS.remove(user_id)
-            msg = 'Person Unauthorized to use the Bot! 🚫'
+            msg = '🚫 Person Unauthorized to use the Bot! 🚫'
         else:
-            msg = 'Person Already Unauthorized! 🚫'
+            msg = '🚫 Person Already Unauthorized! 🚫'
     with open('authorized_chats.txt', 'a') as file:
         file.truncate(0)
         for i in AUTHORIZED_CHATS:
@@ -61,9 +58,9 @@ def unauthorize(update,context):
 
 
 authorize_handler = CommandHandler(command=BotCommands.AuthorizeCommand, callback=authorize,
-                                   filters=CustomFilters.owner_filter & Filters.group)
+                                   filters=CustomFilters.owner_filter & Filters.group, run_async=True)
 unauthorize_handler = CommandHandler(command=BotCommands.UnAuthorizeCommand, callback=unauthorize,
-                                     filters=CustomFilters.owner_filter & Filters.group)
+                                     filters=CustomFilters.owner_filter & Filters.group, run_async=True)
 dispatcher.add_handler(authorize_handler)
 dispatcher.add_handler(unauthorize_handler)
 

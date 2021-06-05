@@ -1,4 +1,4 @@
-from telegram.ext import CommandHandler, run_async
+from telegram.ext import CommandHandler
 import threading
 from telegram import Update
 from bot import dispatcher, LOGGER
@@ -7,7 +7,6 @@ from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.mirror_utils.upload_utils import gdriveTools
 
-@run_async
 def deletefile(update, context):
 	msg_args = update.message.text.split(None, 1)
 	msg = ''
@@ -15,7 +14,7 @@ def deletefile(update, context):
 		link = msg_args[1]
 		LOGGER.info(msg_args[1])
 	except IndexError:
-		msg = 'Send a link along with command'
+		msg = '🚫 Send Me Google Drive Shareable Link to Delete File 🚫'
 
 	if msg == '' : 
 		drive = gdriveTools.GoogleDriveHelper()
@@ -26,5 +25,5 @@ def deletefile(update, context):
 	threading.Thread(target=auto_delete_message, args=(context.bot, update.message, reply_message)).start()
 
 delete_handler = CommandHandler(command=BotCommands.deleteCommand, callback=deletefile,
-									filters=CustomFilters.authorized_chat | CustomFilters.authorized_user)
+									filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
 dispatcher.add_handler(delete_handler)
